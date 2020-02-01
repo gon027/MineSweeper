@@ -1,0 +1,6 @@
+#myCanvas{
+    display: block;
+    text-align: center;  
+    border: 2px solid #000000;  
+	margin:0 auto;
+}
