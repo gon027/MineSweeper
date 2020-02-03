@@ -1,6 +1,4 @@
 addEventListener("load", main);
-addEventListener("mousemove", mouseMove);
-addEventListener('click', mouseClick);
 
 let canvas;     //キャンバス
 let context;    //コンテキスト
@@ -15,21 +13,7 @@ function createCanvas(_width, _height) {
     canvas = document.getElementById("myCanvas");
     canvas.width = _width;
     canvas.height = _height;
-    //console.log(canvas);
-
     context = canvas.getContext('2d');
-    //console.log(context);
-}
-
-function mouseMove(e) {
-    let rect = canvas.getBoundingClientRect();
-    Mouse.x = e.clientX - rect.left;
-    Mouse.y = e.clientY - rect.top;
-}
-
-function mouseClick(e) {
-    // console.log("clicked");
-    // console.log(" uoooo ;x = " + Mouse.x + ": y = " + Mouse.y);
 }
 
 let currentdiff = 0;    // 現在の難易度
@@ -47,7 +31,8 @@ const rectSize = [48, 32, 32];  // 四角形の大きさ
 const dx = [0, 1, 1, 1, 0, -1, -1, -1];
 const dy = [-1, -1, 0, 1, 1, 1, 0, -1];
 
-const BOM = 10;
+const BOM = 9;
+const FRAG = 10;
 
 let width;
 let height;
@@ -59,18 +44,17 @@ function main(){
         currentdiff = 0;
     }
 
+    loadImages();
     width = rectSize[currentdiff] * windowX[currentdiff];
     height = rectSize[currentdiff] * windowY[currentdiff];
-    size = rectSize[currentdiff];
-
     createCanvas(width, height);
+    size = Math.ceil(48 * scales[currentdiff]);
+    console.log(size);
 
-    loadImages();
-
+    canvas.addEventListener('click', mouseClick);
     init();
-    // draw();
 
-    setInterval(update, 1000 / 60);
+    setInterval(update, 60);
 }
 
 function init(){
@@ -84,30 +68,71 @@ function init(){
 }
 
 function update() {
-    getMousePosition();
-    console.log("x = " + Mouse.x + ": y = " + Mouse.y);
-    // context.drawImage(images[0], 0, 0);
-    // context.drawImage(images[1], size, 0);
-    // context.drawImage(images[2], size * 2, 0);
-    // context.drawImage(images[3], size * 3, 0);
-    // context.drawImage(images[4], 0, size);
-    // context.drawImage(images[5], 0, size * 2);
-    // context.drawImage(images[6], 0, size * 3);
-    // context.drawImage(images[7], size, size);
-    // context.drawImage(images[8], size * 2, size * 2);
-    // context.drawImage(images[9], size * 3, size * 3);
-
     draw();
+}
+
+function draw() {
+    // マス目描画
+    let H = windowY[currentdiff];
+    let W = windowX[currentdiff];
+
+    context.clearRect(0, 0, width, height);
+    // context.fillStyle = '#ffffff';
+    // context.fillRect(0, 0, width, height);
+
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            if((y + x) % 2 == 0){
+                context.fillStyle = "red";
+                // context.fillRect(x * size, y * size, size, size);
+            }else{
+                context.fillStyle = "yellow";
+            }
+                context.fillRect(x * size, y * size, size, size);
+            
+        }
+    }
+
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            if (array[y][x] != 0) {
+                context.drawImage(images[array[y][x]], x * size, y * size);
+            }
+
+            if (caver_array[y][x] == 11) {
+                context.drawImage(images[11], x * size, y * size);
+            } else if (caver_array[y][x] == FRAG){
+                context.drawImage(images[FRAG], x * size, y * size);
+            }
+        }
+    }
+}
+
+function digRangeMasu(_x, _y){
+    let W = windowX[currentdiff], H = windowY[currentdiff];
+    let iy = 0, ix = 0;
+
+    for(let i = 0; i < 8; i += 1){
+        iy = _y + dy[i];
+        ix = _x + dx[i];
+        
+        if(!outOfArray(ix, iy, W, H)){
+            // digRangeMasu(ix, iy);
+            caver_array[iy][ix] = 0;
+        }
+    }
 }
 
 function initArray(_W, _H){
     array = new Array(_H);
+    caver_array = new Array(_H);
+
     for (let y = 0; y < _H; y++) {
         array[y] = new Array(_W);
+        caver_array[y] = new Array(_W);
         for (let x = 0; x < _W; x++) {
             array[y][x] = 0;
-            // console.log(array[y][x]);
-            // console.log(1);
+            caver_array[y][x] = 11;
         }
     }
 }
@@ -161,8 +186,8 @@ function loadImages(){
     for (let i = 0; i < 12; i++) {
         images[i] = new Image();
     }
-    images[0].src = "Aseet/none.png";
 
+    // images[0].src = "Aseet/none.png";
     images[1].src = "Aseet/one.png";
     images[2].src = "Aseet/twe.png";
     images[3].src = "Aseet/three.png";
@@ -171,75 +196,42 @@ function loadImages(){
     images[6].src = "Aseet/six.png";
     images[7].src = "Aseet/seven.png";
     images[8].src = "Aseet/eight.png";
-
     images[9].src = "Aseet/bom.png";
-
     images[10].src = "Aseet/flag.png";
     images[11].src = "Aseet/wall.png";
+
+    console.log(images[10].src);
 }
 
-function draw(){
-    // マス目描画
-    let H = windowY[currentdiff];
-    let W = windowX[currentdiff];
-    for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-            // drawTest(x, y, array[y][x]);
-            context.drawImage(images[array[y][x]], x * size, y * size);
-        }
+function mouseClick(e) {
+    let rect = canvas.getBoundingClientRect();
+    Mouse.x = e.clientX - rect.left;
+    Mouse.y = e.clientY - rect.top;
+
+    getMousePosition();
+
+    if (!outOfArray(Mouse.x, Mouse.y)) {
+        caver_array[Mouse.y][Mouse.x] = 0;
+        digRangeMasu(Mouse.x, Mouse.y);
     }
+
+    // console.log("x = " + Mouse.x + ": y = " + Mouse.y)
+
+    debugArray(8);
 }
 
-// function drawTest(_x, _y, _num){
-//     switch(_num){
-//         case 10: {
-//             context.fillStyle = "rgb(255, 255, 255)";
-//             drawRect(_x * size, _y * size, size);
-//             break;
-//         }
+function leftClickEvent(){
 
-//         case 0:{
-//             context.fillStyle = "rgb(0, 255, 0)";
-//             drawRect(_x * size, _y * size, size);
-//             break;
-//         }
+}
 
-//         case 1: {
-//             context.fillStyle = "rgb(255, 0, 255)";
-//             drawRect(_x * size, _y * size, size);
-//             break;
-//         }
+function rightClickEvent(){
 
-//         case 2: {
-//             context.fillStyle = "rgb(255, 0, 0)";
-//             drawRect(_x * size, _y * size, size);
-//             break;
-//         }
-
-//         case 3: {
-//             context.fillStyle = "rgb(0, 0, 255)";
-//             drawRect(_x * size, _y * size, size);
-//             break;
-//         }
-
-//         case 4: {
-//             context.fillStyle = "rgb(0, 0, 255)";
-//             drawRect(_x * size, _y * size, size);
-//             break;
-//         }
-//     }
-// }
-
-// function drawRect(_x, _y, _size){
-//     context.fillRect(_x, _y, _size, _size);
-//     context.strokeRect(_x, _y, _size, _size);
-// }
+}
 
 function getMousePosition(){
     Mouse.x = Math.floor(Mouse.x / size);
     Mouse.y = Math.floor(Mouse.y / size);
 }
-
 
 // [min, max)の範囲のランダムな数値を取得
 function getRandomRange(min, max) {
@@ -248,6 +240,6 @@ function getRandomRange(min, max) {
 
 function debugArray(_H){
     for (let y = 0; y < _H; y++) {
-        console.log(array[y]);
+        console.log(caver_array[y]);
     }
 }
