@@ -116,7 +116,7 @@ function digRangeMasu(_x, _y){
         iy = _y + dy[i];
         ix = _x + dx[i];
         
-        if(!outOfArray(ix, iy, W, H)){
+        if(outOfArray(ix, iy, W, H)){
             // digRangeMasu(ix, iy);
             caver_array[iy][ix] = 0;
         }
@@ -156,7 +156,7 @@ function countRangeBom(_x, _y, _W, _H){
     for(let i = 0; i < 8; i++){
         let iy = _y + dy[i];
         let ix = _x + dx[i];
-        if(!outOfArray(ix, iy, _W, _H) && array[iy][ix] != 9){
+        if(outOfArray(ix, iy, _W, _H) && array[iy][ix] != 9){
             console.log(i + ": iy = " + iy + ", ix = " + ix + ", array = " + array[iy][ix]);
 
             array[iy][ix]++;
@@ -176,10 +176,10 @@ function calcBomRange(_W, _H){
 
 function outOfArray(_x, _y, _W, _H){
     if (_x < 0 || _x > _W - 1 || _y < 0 || _y > _H - 1) {
-        return true;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 function loadImages(){
@@ -210,7 +210,7 @@ function mouseClick(e) {
 
     getMousePosition();
 
-    if (!outOfArray(Mouse.x, Mouse.y)) {
+    if (outOfArray(Mouse.x, Mouse.y)) {
         caver_array[Mouse.y][Mouse.x] = 0;
         digRangeMasu(Mouse.x, Mouse.y);
     }
