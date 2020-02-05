@@ -16,18 +16,24 @@ function createCanvas(_width, _height) {
     context = canvas.getContext('2d');
 }
 
-let currentdiff = 0;    // 現在の難易度
+const Difficulty = {
+    Easy: 0,
+    Nomal: 1,
+    Hard: 2
+}
+
+let currentdiff = Difficulty.Easy;    // 現在の難易度
 
 let array;  // 爆弾等を記録する配列
 let caver_array;    // 外側の側を記録する配列
 let images = new Array(12);
 
-const windowX = [8, 16, 24];  // フレームの幅
-const windowY = [8, 16, 24];  // フレームの高さ
-const boms = [10, 40, 99];    // 爆弾の数
-const flags = [40, 80, 99];    // フラグの数
-const scales = [1, 0.66, 0.66]; // スケール
-const rectSize = [48, 32, 32];  // 四角形の大きさ
+const windowX = [8, 16, 24];            // フレームの幅
+const windowY = [8, 16, 24];            // フレームの高さ
+const boms = [10, 40, 99];              // 爆弾の数
+const flags = [40, 80, 99];             // フラグの数
+const scales = [1, 0.66, 0.66];         // スケール
+const rectSize = [48, 32, 32];          // 四角形の大きさ
 const dx = [0, 1, 1, 1, 0, -1, -1, -1];
 const dy = [-1, -1, 0, 1, 1, 1, 0, -1];
 
@@ -37,24 +43,20 @@ const FRAG = 10;
 let width;
 let height;
 
-let image;
+let firstClick;
+let gameOver;
 
 function main(){
-    if(currentdiff < 0 || currentdiff > 2){
-        currentdiff = 0;
-    }
-
     loadImages();
     width = rectSize[currentdiff] * windowX[currentdiff];
     height = rectSize[currentdiff] * windowY[currentdiff];
     createCanvas(width, height);
     size = Math.ceil(48 * scales[currentdiff]);
-    console.log(size);
 
-    canvas.addEventListener('click', mouseClick);
     init();
 
     setInterval(update, 60);
+    canvas.addEventListener('click', mouseClick);
 }
 
 function init(){
@@ -82,19 +84,13 @@ function draw() {
 
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
-            if((y + x) % 2 == 0){
+            if ((y + x) % 2 == 0) {
                 context.fillStyle = "red";
-                // context.fillRect(x * size, y * size, size, size);
-            }else{
+            } else {
                 context.fillStyle = "yellow";
             }
-                context.fillRect(x * size, y * size, size, size);
-            
-        }
-    }
+            context.fillRect(x * size, y * size, size, size);
 
-    for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
             if (array[y][x] != 0) {
                 context.drawImage(images[array[y][x]], x * size, y * size);
             }
@@ -110,17 +106,26 @@ function draw() {
 
 function digRangeMasu(_x, _y){
     let W = windowX[currentdiff], H = windowY[currentdiff];
-    let iy = 0, ix = 0;
 
-    for(let i = 0; i < 8; i += 1){
+    if (!outOfArray(_x, _y, W, H)) return;
+    console.log(2391);
+
+    let iy = 0, ix = 0;
+    for(let i = 0; i < 8; i += 2){
         iy = _y + dy[i];
         ix = _x + dx[i];
-        
-        if(outOfArray(ix, iy, W, H)){
-            // digRangeMasu(ix, iy);
-            caver_array[iy][ix] = 0;
+
+        console.log(1111);
+        // console.log(i + ": iy = " + iy + ", ix = " + ix);
+
+        if (caver_array[_y][_x] == 11){
+            console.log(1192);
+            digRangeMasu(ix, iy);
         }
     }
+
+    console.log(115514);
+    caver_array[_y][_x] = 0;
 }
 
 function initArray(_W, _H){
@@ -152,12 +157,12 @@ function setBom(_W, _H){
 
 // 爆弾のある範囲をカウントする
 function countRangeBom(_x, _y, _W, _H){
-    console.log("y = " + _y + ", x = " + _x + ", val = " + array[_y][_x]);
+    // console.log("y = " + _y + ", x = " + _x + ", val = " + array[_y][_x]);
     for(let i = 0; i < 8; i++){
         let iy = _y + dy[i];
         let ix = _x + dx[i];
         if(outOfArray(ix, iy, _W, _H) && array[iy][ix] != 9){
-            console.log(i + ": iy = " + iy + ", ix = " + ix + ", array = " + array[iy][ix]);
+            // console.log(i + ": iy = " + iy + ", ix = " + ix + ", array = " + array[iy][ix]);
 
             array[iy][ix]++;
         }
@@ -187,7 +192,7 @@ function loadImages(){
         images[i] = new Image();
     }
 
-    // images[0].src = "Aseet/none.png";
+    images[0].src = "Aseet/none.png";
     images[1].src = "Aseet/one.png";
     images[2].src = "Aseet/twe.png";
     images[3].src = "Aseet/three.png";
@@ -199,23 +204,15 @@ function loadImages(){
     images[9].src = "Aseet/bom.png";
     images[10].src = "Aseet/flag.png";
     images[11].src = "Aseet/wall.png";
-
-    console.log(images[10].src);
 }
 
 function mouseClick(e) {
-    let rect = canvas.getBoundingClientRect();
-    Mouse.x = e.clientX - rect.left;
-    Mouse.y = e.clientY - rect.top;
+    let mouse = transrateArrayIndex(getMousePosition(e));
 
-    getMousePosition();
-
-    if (outOfArray(Mouse.x, Mouse.y)) {
-        caver_array[Mouse.y][Mouse.x] = 0;
-        digRangeMasu(Mouse.x, Mouse.y);
+    if (outOfArray(mouse.x, mouse.y)) {
+        // caver_array[mouse.y][mouse.x] = 0;
+        digRangeMasu(mouse.x, mouse.y);
     }
-
-    // console.log("x = " + Mouse.x + ": y = " + Mouse.y)
 
     debugArray(8);
 }
@@ -228,9 +225,22 @@ function rightClickEvent(){
 
 }
 
-function getMousePosition(){
-    Mouse.x = Math.floor(Mouse.x / size);
-    Mouse.y = Math.floor(Mouse.y / size);
+function getMousePosition(_e){
+    let rect = canvas.getBoundingClientRect();
+
+    let mx = _e.clientX - rect.left;
+    let my = _e.clientY - rect.top
+    return {
+        x: mx,
+        y: my
+    };
+}
+
+function transrateArrayIndex(_mouse){
+    return {
+        x: Math.floor(_mouse.x / size),
+        y: Math.floor(_mouse.y / size)
+    }
 }
 
 // [min, max)の範囲のランダムな数値を取得
