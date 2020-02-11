@@ -1,6 +1,15 @@
+html, body{
+    background-color: rgb(255, 246, 235);
+}
+
 #myCanvas{
     display: block;
-    text-align: center;  
     border: 2px solid #000000;  
-	margin:0 auto;
+    margin:0 auto;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+p{
+    text-align: center;
 }

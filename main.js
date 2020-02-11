@@ -104,28 +104,39 @@ function draw() {
     }
 }
 
+function aaa(arr){
+    if(arr >= 1 && arr <= 9){
+        return true;
+    }
+
+    return false;
+}
+
 function digRangeMasu(_x, _y){
     let W = windowX[currentdiff], H = windowY[currentdiff];
+    //console.log(W);
 
-    if (!outOfArray(_x, _y, W, H)) return;
-    console.log(2391);
+    // 現在の添え字が範囲外か調べる
+    // (範囲外)、すでに掘っているか、数字床があるか
+    if (outOfArray(_x, _y, W, H) /* || caver_array[_y][_x] === 0*/){
+        console.log(1234567);
+        return;
+    }
 
-    let iy = 0, ix = 0;
+    caver_array[_y][_x] = 0;
+
     for(let i = 0; i < 8; i += 2){
-        iy = _y + dy[i];
-        ix = _x + dx[i];
+        let iy = _y + dy[i];
+        let ix = _x + dx[i];
 
-        console.log(1111);
-        // console.log(i + ": iy = " + iy + ", ix = " + ix);
-
-        if (caver_array[_y][_x] == 11){
-            console.log(1192);
+        
+        if (caver_array[iy][ix] === 11){
+            console.log("iy: " + iy +" ix: " + ix)
             digRangeMasu(ix, iy);
         }
     }
 
-    console.log(115514);
-    caver_array[_y][_x] = 0;
+    console.log("dgRangeMasu::end");
 }
 
 function initArray(_W, _H){
@@ -161,7 +172,7 @@ function countRangeBom(_x, _y, _W, _H){
     for(let i = 0; i < 8; i++){
         let iy = _y + dy[i];
         let ix = _x + dx[i];
-        if(outOfArray(ix, iy, _W, _H) && array[iy][ix] != 9){
+        if(!outOfArray(ix, iy, _W, _H) && array[iy][ix] != 9){
             // console.log(i + ": iy = " + iy + ", ix = " + ix + ", array = " + array[iy][ix]);
 
             array[iy][ix]++;
@@ -181,10 +192,11 @@ function calcBomRange(_W, _H){
 
 function outOfArray(_x, _y, _W, _H){
     if (_x < 0 || _x > _W - 1 || _y < 0 || _y > _H - 1) {
-        return false;
+        //console.log("範囲外");
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 function loadImages(){
@@ -202,19 +214,27 @@ function loadImages(){
     images[7].src = "Aseet/seven.png";
     images[8].src = "Aseet/eight.png";
     images[9].src = "Aseet/bom.png";
+
     images[10].src = "Aseet/flag.png";
     images[11].src = "Aseet/wall.png";
 }
 
 function mouseClick(e) {
+    let transrateArrayIndex = (_m) => {
+        return {
+            x: Math.floor(_m.x / size),
+            y: Math.floor(_m.y / size)
+        }
+    }
+
     let mouse = transrateArrayIndex(getMousePosition(e));
 
-    if (outOfArray(mouse.x, mouse.y)) {
-        // caver_array[mouse.y][mouse.x] = 0;
+    if (!outOfArray(mouse.x, mouse.y)) {
+        //caver_array[mouse.y][mouse.x] = 0;
         digRangeMasu(mouse.x, mouse.y);
     }
 
-    debugArray(8);
+    //debugArray(8);
 }
 
 function leftClickEvent(){
@@ -236,13 +256,6 @@ function getMousePosition(_e){
     };
 }
 
-function transrateArrayIndex(_mouse){
-    return {
-        x: Math.floor(_mouse.x / size),
-        y: Math.floor(_mouse.y / size)
-    }
-}
-
 // [min, max)の範囲のランダムな数値を取得
 function getRandomRange(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
@@ -252,4 +265,5 @@ function debugArray(_H){
     for (let y = 0; y < _H; y++) {
         console.log(caver_array[y]);
     }
+    console.log();
 }
